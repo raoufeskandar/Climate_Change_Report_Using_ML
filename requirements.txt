@@ -10,3 +10,8 @@ joblib
 nltk
 geodatasets
 wordcloud
+transformers
+ipywidgets
+ipython
+torch
+tensorflow
