@@ -20,7 +20,8 @@ st.set_page_config(page_title="Climate Change Impact Analysis", layout="wide")
 # Load Data
 @st.cache_data
 def load_data():
-    df_raw = pd.read_csv('../data/realistic_climate_change_impacts.csv')
+    #df_raw = pd.read_csv('../data/realistic_climate_change_impacts.csv')
+    df_raw = pd.read_csv('data/realistic_climate_change_impacts.csv')
     df = df_raw.copy()
     df.columns = df.columns.str.lower().str.replace(' ', '')
     
