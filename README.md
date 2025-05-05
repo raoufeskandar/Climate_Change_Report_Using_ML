@@ -56,8 +56,6 @@ realistic_climate_change_impacts/
 # Running the Jupyter Notebook
     jupyter notebook
 
-
-
 ## Code Overview
 The 01_data_cleaning_and_eda.ipynb notebook is the core of the analysis. Below is a breakdown of its sections:
 
