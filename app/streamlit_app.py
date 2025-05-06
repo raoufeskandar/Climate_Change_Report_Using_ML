@@ -61,7 +61,7 @@ clustering_model, classification_model, scaler = load_models()
 
 # Initialize AI generator with error handling
 try:
-    generator = pipeline("text-generation", model="distilgpt2")
+    generator = pipeline("text-generation", model="distilgpt2", framework="pt")  # Force PyTorch backend
 except Exception as e:
     st.warning(f"AI analysis unavailable due to resource limits: {str(e)}")
     generator = None
