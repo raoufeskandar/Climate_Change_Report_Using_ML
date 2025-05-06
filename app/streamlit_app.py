@@ -20,8 +20,7 @@ st.set_page_config(page_title="Climate Change Impact Analysis", layout="wide")
 # Load Data
 @st.cache_data
 def load_data():
-    df_raw = pd.read_csv('../data/realistic_climate_change_impacts.csv')
-    # df_raw = pd.read_csv('data/realistic_climate_change_impacts.csv')
+    df_raw = pd.read_csv('data/realistic_climate_change_impacts.csv')
     df = df_raw.copy()
     df.columns = df.columns.str.lower().str.replace(' ', '')
     
@@ -51,17 +50,21 @@ def load_models():
     classification_model = None
     scaler = None
     try:
-        clustering_model = joblib.load('../models/clustering_model.pkl')
-        classification_model = joblib.load('../models/classification_model.pkl')
-        scaler = joblib.load('../models/scaler.pkl')
+        clustering_model = joblib.load('models/clustering_model.pkl')
+        classification_model = joblib.load('models/classification_model.pkl')
+        scaler = joblib.load('models/scaler.pkl')
     except Exception as e:
         st.warning(f"Model loading failed: {e}")
     return clustering_model, classification_model, scaler
 
 clustering_model, classification_model, scaler = load_models()
 
-# Initialize AI generator
-generator = pipeline("text-generation", model="distilgpt2")
+# Initialize AI generator with error handling
+try:
+    generator = pipeline("text-generation", model="distilgpt2")
+except Exception as e:
+    st.warning(f"AI analysis unavailable due to resource limits: {str(e)}")
+    generator = None
 
 # Sidebar Navigation
 with st.sidebar:
@@ -190,7 +193,7 @@ with col1:
         st.subheader("World Map of Event Counts")
         try:
             import geopandas as gpd
-            world = gpd.read_file("../data/ne_110m_admin_0_countries.shp")
+            world = gpd.read_file("data/ne_110m_admin_0_countries.shp")
             merged = world.merge(filtered_df.groupby('country').size().reset_index(name='counts'),
                                  how='left', left_on='NAME', right_on='country')
             fig = px.choropleth(merged, geojson=merged.geometry, locations=merged.index, color='counts', projection="natural earth")
@@ -223,9 +226,15 @@ with col1:
                 f"Would you like to calculate the economic impact of that consumption "
                 f"per square foot, per day, or per year?"
             )
-            result = generator(prompt, max_length=100, num_return_sequences=1)
-            st.markdown(f"### AI-Generated Summary for {selected_country}")
-            st.markdown(result[0]['generated_text'])
+            if generator:
+                try:
+                    result = generator(prompt, max_length=100, num_return_sequences=1)
+                    st.markdown(f"### AI-Generated Summary for {selected_country}")
+                    st.markdown(result[0]['generated_text'])
+                except Exception as e:
+                    st.error(f"Failed to generate AI summary: {str(e)}")
+            else:
+                st.write("AI analysis is currently unavailable due to resource constraints.")
 
             def calculate_impact(df, country, method):
                 row = df[df['country'] == country]
@@ -246,7 +255,13 @@ with col1:
 
             impact = calculate_impact(df, selected_country, calc_method)
             prompt = f"The CO2 consumption of {selected_country} is calculated using the {calc_method} method. Provide an analysis."
-            result = generator(prompt, max_length=100, num_return_sequences=1)
-            st.markdown(f"### Detailed Analysis")
-            st.markdown(result[0]['generated_text'])
+            if generator:
+                try:
+                    result = generator(prompt, max_length=100, num_return_sequences=1)
+                    st.markdown(f"### Detailed Analysis")
+                    st.markdown(result[0]['generated_text'])
+                except Exception as e:
+                    st.error(f"Failed to generate detailed analysis: {str(e)}")
+            else:
+                st.write("Detailed analysis is currently unavailable due to resource constraints.")
             st.markdown(f"**{impact}**")
